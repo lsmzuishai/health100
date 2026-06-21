@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#2e7d32">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="健康打卡">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="icon" type="image/png" href="./icons/icon-192.png">
+  <title>100天健康蜕变打卡</title>
+  <style>
+    :root {
+      --primary: #2e7d32;
+      --primary-light: #4caf50;
+      --primary-bg: #e8f5e9;
+      --danger: #c62828;
+      --danger-bg: #ffebee;
+      --warning: #f57c00;
+      --warning-bg: #fff3e0;
+      --text: #333;
+      --text-light: #666;
+      --bg: #f5f5f5;
+      --card: #fff;
+      --border: #e0e0e0;
+      --shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding-bottom: 80px;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container { max-width: 800px; margin: 0 auto; padding: 16px; }
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+    }
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title .icon { font-size: 20px; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      background: var(--primary);
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      touch-action: manipulation;
+    }
+    .btn:hover { opacity: 0.9; }
+    .btn:active { opacity: 0.8; }
+    .btn-secondary { background: #757575; }
+    .btn-danger { background: var(--danger); }
+    .btn-block { width: 100%; }
+    .btn-small { padding: 8px 14px; font-size: 14px; }
+    .nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+      z-index: 100;
+    }
+    .nav-item {
+      flex: 1;
+      text-align: center;
+      padding: 6px;
+      cursor: pointer;
+      color: var(--text-light);
+      font-size: 12px;
+      transition: color 0.2s;
+    }
+    .nav-item.active { color: var(--primary); }
+    .nav-item .icon { display: block; font-size: 22px; margin-bottom: 2px; }
+    .hidden { display: none !important; }
+    .setup-form label {
+      display: block;
+      margin-bottom: 16px;
+      font-size: 15px;
+    }
+    .setup-form input, .setup-form select {
+      width: 100%;
+      padding: 14px;
+      margin-top: 6px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 16px;
+      -webkit-appearance: none;
+    }
+    .progress-bar {
+      height: 12px;
+      background: #e0e0e0;
+      border-radius: 6px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary-light), var(--primary));
+      transition: width 0.3s;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .stat-box {
+      background: var(--primary-bg);
+      border-radius: 10px;
+      padding: 14px;
+      text-align: center;
+    }
+    .stat-box.danger { background: var(--danger-bg); }
+    .stat-box.warning { background: var(--warning-bg); }
+    .stat-value { font-size: 26px; font-weight: 700; color: var(--primary); }
+    .stat-box.danger .stat-value { color: var(--danger); }
+    .stat-box.warning .stat-value { color: var(--warning); }
+    .stat-label { font-size: 13px; color: var(--text-light); margin-top: 4px; }
+    .checklist-item {
+      display: flex;
+      align-items: center;
+      padding: 14px 12px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      min-height: 52px;
+    }
+    .checklist-item:last-child { border-bottom: none; }
+    .checklist-item input[type="checkbox"] {
+      width: 24px;
+      height: 24px;
+      margin-right: 14px;
+      accent-color: var(--primary);
+      flex-shrink: 0;
+    }
+    .checklist-item.checked { opacity: 0.7; }
+    .checklist-item.checked span { text-decoration: line-through; }
+    .phase-tag {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+    .phase-1 { background: #e3f2fd; color: #1565c0; }
+    .phase-2 { background: #f3e5f5; color: #6a1b9a; }
+    .phase-3 { background: #e8f5e9; color: #2e7d32; }
+    .phase-4 { background: #fff3e0; color: #ef6c00; }
+    .info-list { list-style: none; }
+    .info-list li {
+      padding: 8px 0;
+      border-bottom: 1px dashed var(--border);
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .info-list li:last-child { border-bottom: none; }
+    .info-list .bullet {
+      min-width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--primary-bg);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+    .metric-input {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .metric-input label {
+      display: block;
+      font-size: 13px;
+      color: var(--text-light);
+      margin-bottom: 4px;
+    }
+    .metric-input input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      text-align: center;
+    }
+    .calendar-day-header {
+      font-size: 12px;
+      color: var(--text-light);
+      padding: 8px 0;
+    }
+    .calendar-day {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      cursor: pointer;
+      background: var(--card);
+      border: 1px solid var(--border);
+    }
+    .calendar-day.empty { background: transparent; border: none; cursor: default; }
+    .calendar-day.today { border-color: var(--primary); background: var(--primary-bg); }
+    .calendar-day .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-top: 4px;
+    }
+    .dot-done { background: var(--primary); }
+    .dot-partial { background: var(--warning); }
+    .chart-container {
+      position: relative;
+      height: 200px;
+      margin: 16px 0;
+    }
+    .chart-canvas { width: 100%; height: 100%; }
+    .review-textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 16px;
+      margin-bottom: 12px;
+      font-family: inherit;
+    }
+    .settings-section { margin-bottom: 24px; }
+    .settings-section h3 { margin-bottom: 10px; font-size: 16px; }
+    .danger-zone { background: var(--danger-bg); border-radius: 10px; padding: 16px; }
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 16px;
+    }
+    .modal-content {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 400px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .modal-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+    .modal-actions .btn { flex: 1; }
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-light); }
+    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+    .tip-box {
+      background: var(--warning-bg);
+      border-left: 4px solid var(--warning);
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
+    .warning-box {
+      background: var(--danger-bg);
+      border-left: 4px solid var(--danger);
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
+    .install-tip {
+      background: var(--primary-bg);
+      border: 1px solid var(--primary-light);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .metric-input { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script>
+    // ============= 阶段配置 =============
+    const PHASES = {
+      1: {
+        name: '第一阶段',
+        days: '第1-14天',
+        therapy: '祛湿启脾，疏肝理气',
+        target: '建立习惯，减重2-4斤',
+        color: 'phase-1',
+        checklist: [
+          { id: 'morningWater', text: '晨起喝温水300ml' },
+          { id: 'bowel', text: '排便并观察' },
+          { id: 'preWorkoutSnack', text: '早餐前少量复合碳水' },
+          { id: 'jingangGong', text: '金刚功15分钟' },
+          { id: 'dunqiang', text: '蹲墙功10次' },
+          { id: 'walkBreakfast', text: '早餐后慢走10分钟' },
+          { id: 'walkLunch', text: '午餐后慢走15分钟' },
+          { id: 'walkDinner', text: '晚餐后慢走20分钟' },
+          { id: 'changshouGong', text: '长寿功15分钟' },
+          { id: 'jingangGui', text: '金刚跪3-5分钟' },
+          { id: 'acupressure', text: '穴位按摩8分钟（早3+晚5）' },
+          { id: 'footSoak', text: '泡脚15分钟' },
+          { id: 'sleepOnTime', text: '22:30前上床' },
+          { id: 'record', text: '记录饮食和运动' }
+        ],
+        forbidden: [
+          { id: 'noCold', text: '不吃冷饮、冰淇淋' },
+          { id: 'noRaw', text: '不吃生冷沙拉、生鱼片' },
+          { id: 'noSugar', text: '不喝含糖饮料' },
+          { id: 'noAlcohol', text: '不喝酒' },
+          { id: 'noFried', text: '不吃油炸食品' },
+          { id: 'noLateSnack', text: '不吃宵夜' },
+          { id: 'noStayUp', text: '不熬夜' },
+          { id: 'noHeavySweat', text: '不大汗淋漓运动' },
+          { id: 'noFastEmpty', text: '不空腹剧烈运动' },
+          { id: 'noBinge', text: '不暴饮暴食' }
+        ],
+        diet: {
+          calories: '男性1800-1900kcal，女性1500-1600kcal',
+          tea: '陈皮茯苓茶、山楂荷叶茶、玉米须茶',
+          keyFoods: '茯苓、薏苡仁、赤小豆、玉米须、陈皮、玫瑰花、山药、小米',
+          tips: '主食1/3替换为粗粮，晚餐19点前完成，先吃蔬菜再吃肉最后吃主食。'
+        },
+        exercise: {
+          morning: '金刚功15分钟 + 蹲墙功10次 + 热身5分钟',
+          day: '三餐后散步10/15/20分钟',
+          evening: '长寿功15分钟 + 金刚跪3-5分钟 + 穴位按摩',
+          intensity: '心率不超过110次/分，微微温暖即可，不可大汗'
+        },
+        sleep: '22:30上床，23:00入睡，午休20-30分钟'
+      },
+      2: {
+        name: '第二阶段',
+        days: '第15-40天',
+        therapy: '健脾益气，温补肾阳',
+        target: '强化习惯，累计减重6-12斤',
+        color: 'phase-2',
+        checklist: [
+          { id: 'morningWater', text: '晨起喝温水300ml' },
+          { id: 'bowel', text: '排便' },
+          { id: 'preWorkoutSnack', text: '早餐前少量复合碳水' },
+          { id: 'jingangGong', text: '金刚功18-20分钟' },
+          { id: 'dunqiang', text: '蹲墙功15次' },
+          { id: 'walkBreakfast', text: '早餐后慢走12分钟' },
+          { id: 'walkLunch', text: '午餐后慢走18分钟' },
+          { id: 'walkDinner', text: '晚餐后慢走25分钟' },
+          { id: 'changshouGong', text: '长寿功18分钟' },
+          { id: 'jingangGui', text: '金刚跪5-8分钟' },
+          { id: 'strength', text: '隔天力量训练' },
+          { id: 'acupressure', text: '穴位按摩10分钟（早5+晚5）' },
+          { id: 'footSoak', text: '泡脚15分钟' },
+          { id: 'sleepOnTime', text: '22:45前入睡' },
+          { id: 'record', text: '记录体重、腰围' }
+        ],
+        forbidden: [
+          { id: 'noCold', text: '不吃冷饮、生冷食物' },
+          { id: 'noSugar', text: '不喝含糖饮料' },
+          { id: 'noAlcohol', text: '不喝酒' },
+          { id: 'noFried', text: '不吃油炸食品' },
+          { id: 'noLateSnack', text: '不吃宵夜' },
+          { id: 'noStayUp', text: '不熬夜' },
+          { id: 'noSkipBreakfast', text: '不跳过早餐' },
+          { id: 'noEatLate', text: '不在睡前2小时进食' },
+          { id: 'noRest2Days', text: '不连续两天不运动' },
+          { id: 'noOverTrain', text: '力量训练不过度' }
+        ],
+        diet: {
+          calories: '男性1700-1800kcal，女性1400-1500kcal',
+          tea: '黄芪枸杞茶、桂圆红枣茶、陈皮茯苓茶',
+          keyFoods: '羊肉、韭菜、核桃、桂圆、生姜、黄芪、山药、莲子',
+          tips: '主食1/2替换为粗粮，每周1-2次当归生姜羊肉汤（阴虚火旺者慎用）。'
+        },
+        exercise: {
+          morning: '金刚功18-20分钟 + 蹲墙功15次',
+          day: '三餐后散步12/18/25分钟',
+          evening: '长寿功18分钟 + 金刚跪5-8分钟 + 隔天力量训练（跪姿俯卧撑3组×8-10次、平板支撑3组×30秒、臀桥3组×12次）',
+          intensity: '心率不超过120次/分，微微出汗，动作标准优先'
+        },
+        sleep: '22:15上床，22:45入睡，晨起晒背10-15分钟'
+      },
+      3: {
+        name: '第三阶段',
+        days: '第41-70天',
+        therapy: '化痰消脂，滋养肾阴',
+        target: '突破平台期，累计减重10-20斤',
+        color: 'phase-3',
+        checklist: [
+          { id: 'morningWater', text: '晨起喝温水300ml' },
+          { id: 'bowel', text: '排便' },
+          { id: 'preWorkoutSnack', text: '早餐前少量复合碳水' },
+          { id: 'jingangGong', text: '金刚功20分钟' },
+          { id: 'dunqiang', text: '蹲墙功20次' },
+          { id: 'walkBreakfast', text: '早餐后慢走15分钟' },
+          { id: 'walkLunch', text: '午餐后慢走20分钟' },
+          { id: 'walkDinner', text: '晚餐后慢走30分钟' },
+          { id: 'fastWalk', text: '每周2次快走40-60分钟' },
+          { id: 'changshouGong', text: '长寿功20分钟' },
+          { id: 'jingangGui', text: '金刚跪8-10分钟' },
+          { id: 'strength', text: '隔天力量训练' },
+          { id: 'acupressure', text: '穴位按摩10分钟' },
+          { id: 'footSoak', text: '泡脚10-15分钟' },
+          { id: 'sleepOnTime', text: '22:30前入睡' },
+          { id: 'record', text: '记录体重、腰围、血糖' }
+        ],
+        forbidden: [
+          { id: 'noCold', text: '不吃冷饮、生冷食物' },
+          { id: 'noSugar', text: '不喝含糖饮料' },
+          { id: 'noAlcohol', text: '不喝酒' },
+          { id: 'noFried', text: '不吃油炸食品' },
+          { id: 'noLateSnack', text: '不吃宵夜' },
+          { id: 'noStayUp', text: '不熬夜' },
+          { id: 'noLowCarb', text: '不采用低碳日/碳水循环' },
+          { id: 'noNightExercise', text: '不夜间剧烈运动' },
+          { id: 'noHeavyFootSoak', text: '不长时间泡脚至大汗' },
+          { id: 'noOverTrain', text: '不过度力量训练' }
+        ],
+        diet: {
+          calories: '男性1600-1700kcal，女性1300-1400kcal',
+          tea: '枸杞菊花茶、桑葚黑豆茶、百合银耳羹',
+          keyFoods: '银耳、百合、桑葚、黑豆、枸杞、海带、木耳、冬瓜',
+          tips: '稳定中低碳水130-150g/日，不采用低碳循环，晚餐主食减半。'
+        },
+        exercise: {
+          morning: '金刚功20分钟 + 蹲墙功20次',
+          day: '三餐后散步15/20/30分钟，每周2次快走40-60分钟',
+          evening: '长寿功20分钟 + 金刚跪8-10分钟 + 隔天力量训练（标准俯卧撑3组×10-15次、平板支撑3组×45-60秒、深蹲3组×15次、臀桥3组×15次）',
+          intensity: '快走心率不超过125次/分，力量训练以标准完成为准'
+        },
+        sleep: '22:00上床，22:30入睡，阴虚明显者泡脚不超过40℃'
+      },
+      4: {
+        name: '第四阶段',
+        days: '第71-100天',
+        therapy: '固本培元，阴阳并补',
+        target: '巩固成果，防止反弹',
+        color: 'phase-4',
+        checklist: [
+          { id: 'morningWater', text: '晨起喝温水300ml' },
+          { id: 'bowel', text: '排便' },
+          { id: 'preWorkoutSnack', text: '早餐前少量复合碳水' },
+          { id: 'jingangGong', text: '金刚功/八段锦20分钟' },
+          { id: 'dunqiang', text: '蹲墙功20次（维持）' },
+          { id: 'walkBreakfast', text: '早餐后慢走15分钟' },
+          { id: 'walkLunch', text: '午餐后慢走20分钟' },
+          { id: 'walkDinner', text: '晚餐后慢走30分钟' },
+          { id: 'longWalk', text: '每周1次长距离有氧60-90分钟' },
+          { id: 'changshouGong', text: '长寿功20分钟' },
+          { id: 'jingangGui', text: '金刚跪10分钟' },
+          { id: 'strength', text: '每周3次力量训练' },
+          { id: 'acupressure', text: '穴位按摩10分钟' },
+          { id: 'footSoak', text: '泡脚10-15分钟' },
+          { id: 'sleepOnTime', text: '22:30前入睡' },
+          { id: 'record', text: '记录体重、腰围' }
+        ],
+        forbidden: [
+          { id: 'noCold', text: '不吃冷饮、生冷食物' },
+          { id: 'noSugar', text: '不喝含糖饮料' },
+          { id: 'noAlcohol', text: '不喝酒' },
+          { id: 'noFried', text: '不吃油炸食品' },
+          { id: 'noLateSnack', text: '不吃宵夜' },
+          { id: 'noStayUp', text: '不熬夜' },
+          { id: 'noRelaxRedLines', text: '不因接近目标而放松红线' },
+          { id: 'noSuddenCalories', text: '不突然增加热量' },
+          { id: 'noStopExercise', text: '不停止运动' }
+        ],
+        diet: {
+          calories: '男性1700-1800kcal，女性1400-1500kcal（逐步向维持过渡）',
+          tea: '桂圆红枣枸杞茶、黄芪党参茶、桑葚黑豆茶',
+          keyFoods: '黄芪、党参、红枣、桂圆、枸杞、黑豆、黑芝麻、核桃、山药',
+          tips: '逐步向维持热量过渡，每周可增加100kcal，保持低添加糖。'
+        },
+        exercise: {
+          morning: '金刚功/八段锦20分钟 + 蹲墙功20次',
+          day: '三餐后散步15/20/30分钟，每周1次长距离有氧60-90分钟',
+          evening: '长寿功20分钟 + 金刚跪10分钟 + 每周3次力量训练（标准俯卧撑4组×15-20次、平板支撑3组×1-2分钟、深蹲3组×20次、臀桥3组×15次）',
+          intensity: '维持现有强度，重点在长期保持'
+        },
+        sleep: '22:00上床，22:30入睡，周末也尽量不变'
+      }
+    };
+
+    const ACUPOINTS = {
+      zusanli: { name: '足三里', effect: '健脾胃、补气血', location: '膝眼下4横指，胫骨外侧1横指' },
+      sanyinjiao: { name: '三阴交', effect: '调肝脾肾', location: '内踝尖上4横指，胫骨内侧' },
+      guanyuan: { name: '关元', effect: '培元固本', location: '肚脐下4横指' },
+      yongquan: { name: '涌泉', effect: '引火归元、补肾', location: '足底前1/3凹陷处' },
+      taichong: { name: '太冲', effect: '疏肝理气', location: '足背第1、2跖骨结合部前凹陷' },
+      zhongwan: { name: '中脘', effect: '和胃健脾', location: '肚脐上4横指' }
+    };
+
+    const STORAGE_KEY = 'health100_data_v1';
+
+    function getDefaultData() {
+      return {
+        settings: {
+          startDate: new Date().toISOString().split('T')[0],
+          gender: 'male',
+          initialWeight: 92,
+          targetWeight: 75,
+          height: 170,
+          setupDone: false
+        },
+        records: {}
+      };
+    }
+
+    function loadData() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const data = JSON.parse(saved);
+          return { ...getDefaultData(), ...data };
+        }
+      } catch (e) { console.error('加载数据失败', e); }
+      return getDefaultData();
+    }
+
+    function saveData(data) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+      catch (e) { console.error('保存数据失败', e); }
+    }
+
+    function getDayNumber(startDate) {
+      const start = new Date(startDate);
+      const today = new Date();
+      start.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0);
+      const diff = Math.floor((today - start) / (1000 * 60 * 60 * 24));
+      return Math.max(1, Math.min(100, diff + 1));
+    }
+
+    function getPhase(day) {
+      if (day <= 14) return 1;
+      if (day <= 40) return 2;
+      if (day <= 70) return 3;
+      return 4;
+    }
+
+    function formatDate(date) { return date.toISOString().split('T')[0]; }
+    function addDays(dateStr, days) {
+      const date = new Date(dateStr);
+      date.setDate(date.getDate() + days);
+      return formatDate(date);
+    }
+
+    function getRecord(data, dateStr) {
+      if (!data.records[dateStr]) {
+        data.records[dateStr] = { checklists: {}, forbidden: {}, notes: '' };
+      }
+      return data.records[dateStr];
+    }
+
+    function getCompletionRate(record, phase) {
+      const total = phase.checklist.length + phase.forbidden.length;
+      let done = 0;
+      phase.checklist.forEach(item => { if (record.checklists[item.id]) done++; });
+      phase.forbidden.forEach(item => { if (record.forbidden[item.id]) done++; });
+      return total > 0 ? Math.round((done / total) * 100) : 0;
+    }
+
+    let currentData = loadData();
+    let currentTab = 'today';
+    let selectedDate = formatDate(new Date());
+
+    function render() {
+      const app = document.getElementById('app');
+      if (!currentData.settings.setupDone) {
+        app.innerHTML = renderSetup();
+        bindSetupEvents();
+        return;
+      }
+
+      const day = getDayNumber(currentData.settings.startDate);
+      const phase = PHASES[getPhase(day)];
+
+      let content = '';
+      switch (currentTab) {
+        case 'today': content = renderToday(day, phase); break;
+        case 'checkin': content = renderCheckin(day, phase); break;
+        case 'calendar': content = renderCalendar(); break;
+        case 'stats': content = renderStats(); break;
+        case 'review': content = renderReview(); break;
+        case 'settings': content = renderSettings(); break;
+      }
+
+      app.innerHTML = content + renderNav();
+      bindTabEvents();
+      bindTabSpecificEvents();
+    }
+
+    function renderSetup() {
+      return `
+        <div class="container">
+          <div class="card">
+            <div class="card-title"><span class="icon">🌱</span>开始100天健康蜕变</div>
+            <p style="margin-bottom: 20px; color: var(--text-light);">请填写基本信息，小程序会自动计算当前所处阶段和每日任务。</p>
+            <form class="setup-form" id="setupForm">
+              <label>开始日期<input type="date" id="startDate" value="${currentData.settings.startDate}" required></label>
+              <label>性别
+                <select id="gender" required>
+                  <option value="male" ${currentData.settings.gender === 'male' ? 'selected' : ''}>男</option>
+                  <option value="female" ${currentData.settings.gender === 'female' ? 'selected' : ''}>女</option>
+                </select>
+              </label>
+              <label>当前体重（kg）<input type="number" id="initialWeight" value="${currentData.settings.initialWeight}" step="0.1" required></label>
+              <label>目标体重（kg）<input type="number" id="targetWeight" value="${currentData.settings.targetWeight}" step="0.1" required></label>
+              <label>身高（cm，用于计算BMI）<input type="number" id="height" value="${currentData.settings.height || ''}" placeholder="选填"></label>
+              <button type="submit" class="btn btn-block">开始打卡</button>
+            </form>
+            <div class="warning-box" style="margin-top: 20px;">
+              <strong>重要提醒：</strong>本小程序仅为生活记录工具，不能替代医疗建议。开始执行前请咨询医生，特别是你有血糖高、重度脂肪肝、肾阴阳两虚等情况。
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderToday(day, phase) {
+      const todayRecord = getRecord(currentData, selectedDate);
+      const rate = getCompletionRate(todayRecord, phase);
+      const dateStr = new Date(selectedDate).toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'long' });
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+      return `
+        <div class="container">
+          ${!isStandalone ? `
+          <div class="install-tip">
+            <strong>💡 提示：</strong>你可以把这个小程序添加到手机桌面，像App一样使用。具体方法见“设置”页面的安装说明。
+          </div>
+          ` : ''}
+
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <span class="phase-tag ${phase.color}">${phase.name} · ${phase.days}</span>
+              <span style="font-size: 14px; color: var(--text-light);">${dateStr}</span>
+            </div>
+            <div class="stats-grid">
+              <div class="stat-box"><div class="stat-value">${day}</div><div class="stat-label">当前第几天</div></div>
+              <div class="stat-box"><div class="stat-value">${rate}%</div><div class="stat-label">今日完成度</div></div>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" style="width: ${day}%"></div></div>
+            <div style="font-size: 13px; color: var(--text-light); text-align: center;">100天进度 ${day}/100</div>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><span class="icon">🎯</span>阶段目标</div>
+            <p><strong>中医治则：</strong>${phase.therapy}</p>
+            <p><strong>阶段目标：</strong>${phase.target}</p>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><span class="icon">🍽️</span>今日饮食</div>
+            <ul class="info-list">
+              <li><span class="bullet">热</span><div><strong>热量参考：</strong>${phase.diet.calories}</div></li>
+              <li><span class="bullet">茶</span><div><strong>推荐茶饮：</strong>${phase.diet.tea}</div></li>
+              <li><span class="bullet">食</span><div><strong>重点食材：</strong>${phase.diet.keyFoods}</div></li>
+              <li><span class="bullet">tip</span><div><strong>执行要点：</strong>${phase.diet.tips}</div></li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><span class="icon">🏃</span>今日运动</div>
+            <ul class="info-list">
+              <li><span class="bullet">晨</span><div><strong>早晨：</strong>${phase.exercise.morning}</div></li>
+              <li><span class="bullet">昼</span><div><strong>白天：</strong>${phase.exercise.day}</div></li>
+              <li><span class="bullet">晚</span><div><strong>晚间：</strong>${phase.exercise.evening}</div></li>
+              <li><span class="bullet">度</span><div><strong>强度：</strong>${phase.exercise.intensity}</div></li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><span class="icon">😴</span>今日睡眠</div>
+            <p>${phase.sleep}</p>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><span class="icon">📍</span>常用穴位速查</div>
+            <ul class="info-list">
+              ${Object.values(ACUPOINTS).map(p => `
+                <li><span class="bullet">穴</span><div><strong>${p.name}：</strong>${p.effect}。位置：${p.location}</div></li>
+              `).join('')}
+            </ul>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCheckin(day, phase) {
+      const record = getRecord(currentData, selectedDate);
+      return `
+        <div class="container">
+          <div class="card">
+            <div class="card-title"><span class="icon">✅</span>每日打卡 · 第${day}天</div>
+            <p style="color: var(--text-light); margin-bottom: 12px;">${new Date(selectedDate).toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'long' })}</p>
+
+            <div class="metric-input">
+              <label>体重(kg)<input type="number" id="weightInput" step="0.1" placeholder="选填" value="${record.weight || ''}"></label>
+              <label>腰围(cm)<input type="number" id="waistInput" step="0.1" placeholder="选填" value="${record.waist || ''}"></label>
+              <label>空腹血糖<input type="number" id="sugarInput" step="0.1" placeholder="选填" value="${record.bloodSugar || ''}"></label>
+            </div>
+
+            <div style="margin-bottom: 8px; font-weight: 600;">必做清单</div>
+            ${phase.checklist.map(item => renderCheckItem(item, record.checklists[item.id], 'checklist')).join('')}
+
+            <div style="margin: 20px 0 8px; font-weight: 600;">禁忌清单（做到即勾选）</div>
+            ${phase.forbidden.map(item => renderCheckItem(item, record.forbidden[item.id], 'forbidden')).join('')}
+
+            <div style="margin-top: 16px;">
+              <div style="margin-bottom: 8px; font-weight: 600;">今日感受/备注</div>
+              <textarea id="notesInput" class="review-textarea" placeholder="记录今天的身体感受、遇到的困难、非体重胜利等...">${record.notes || ''}</textarea>
+            </div>
+
+            <button class="btn btn-block" id="saveCheckin">保存今日打卡</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCheckItem(item, checked, type) {
+      return `
+        <div class="checklist-item ${checked ? 'checked' : ''}" data-type="${type}" data-id="${item.id}">
+          <input type="checkbox" ${checked ? 'checked' : ''}>
+          <span>${item.text}</span>
+        </div>
+      `;
+    }
+
+    function renderCalendar() {
+      const today = formatDate(new Date());
+      const start = new Date(currentData.settings.startDate);
+      const startMonth = start.getMonth();
+      const startYear = start.getFullYear();
+
+      let html = '<div class="container">';
+      [0, 1, 2].forEach(offset => {
+        const viewDate = new Date(startYear, startMonth + offset, 1);
+        html += renderMonth(viewDate, today);
+      });
+      html += '</div>';
+      return html;
+    }
+
+    function renderMonth(date, today) {
+      const year = date.getFullYear();
+      const month = date.getMonth();
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const monthName = date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long' });
+
+      let days = '';
+      for (let i = 0; i < firstDay; i++) days += '<div class="calendar-day empty"></div>';
+
+      const start = new Date(currentData.settings.startDate);
+      start.setHours(0,0,0,0);
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const current = new Date(year, month, d);
+        current.setHours(0,0,0,0);
+        const dateStr = formatDate(current);
+        const dayNum = Math.floor((current - start) / (1000 * 60 * 60 * 24)) + 1;
+        const isValid = dayNum >= 1 && dayNum <= 100;
+        const isToday = dateStr === today;
+
+        let dotClass = '';
+        if (isValid && currentData.records[dateStr]) {
+          const phase = PHASES[getPhase(dayNum)];
+          const rate = getCompletionRate(currentData.records[dateStr], phase);
+          if (rate >= 80) dotClass = 'dot-done';
+          else if (rate >= 40) dotClass = 'dot-partial';
+        }
+
+        days += `
+          <div class="calendar-day ${isToday ? 'today' : ''}" data-date="${dateStr}" ${!isValid ? 'style="opacity:0.4"' : ''}>
+            <div>${d}</div>
+            ${isValid ? `<div style="font-size: 10px; color: var(--text-light);">D${dayNum}</div>` : ''}
+            ${dotClass ? `<div class="dot ${dotClass}"></div>` : ''}
+          </div>
+        `;
+      }
+
+      return `
+        <div class="card">
+          <div class="card-title"><span class="icon">📅</span>${monthName}</div>
+          <div class="calendar-grid">
+            <div class="calendar-day-header">日</div>
+            <div class="calendar-day-header">一</div>
+            <div class="calendar-day-header">二</div>
+            <div class="calendar-day-header">三</div>
+            <div class="calendar-day-header">四</div>
+            <div class="calendar-day-header">五</div>
+            <div class="calendar-day-header">六</div>
+            ${days}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderStats() {
+      const records = currentData.records;
+      const dates = Object.keys(records).sort();
+      const weightData = dates.map(d => ({ date: d, value: records[d].weight })).filter(p => p.value);
+      const waistData = dates.map(d => ({ date: d, value: records[d].waist })).filter(p => p.value);
+      const sugarData = dates.map(d => ({ date: d, value: records[d].bloodSugar })).filter(p => p.value);
+
+      const totalCheckin = dates.length;
+      const avgCompletion = dates.length > 0
+        ? Math.round(dates.reduce((sum, d) => {
+            const dayNum = Math.floor((new Date(d) - new Date(currentData.settings.startDate)) / (1000 * 60 * 60 * 24)) + 1;
+            if (dayNum < 1 || dayNum > 100) return sum;
+            return sum + getCompletionRate(records[d], PHASES[getPhase(dayNum)]);
+          }, 0) / dates.length)
+        : 0;
+
+      const currentWeight = weightData.length > 0 ? weightData[weightData.length - 1].value : currentData.settings.initialWeight;
+      const lost = currentData.settings.initialWeight - currentWeight;
+
+      return `
+        <div class="container">
+          <div class="card">
+            <div class="card-title"><span class="icon">📊</span>总体统计</div>
+            <div class="stats-grid">
+              <div class="stat-box"><div class="stat-value">${totalCheckin}</div><div class="stat-label">打卡天数</div></div>
+              <div class="stat-box"><div class="stat-value">${avgCompletion}%</div><div class="stat-label">平均完成度</div></div>
+              <div class="stat-box warning"><div class="stat-value">${lost.toFixed(1)}</div><div class="stat-label">已减重(kg)</div></div>
+              <div class="stat-box danger"><div class="stat-value">${currentWeight.toFixed(1)}</div><div class="stat-label">当前体重(kg)</div></div>
+            </div>
+          </div>
+
+          ${weightData.length > 1 ? `
+          <div class="card">
+            <div class="card-title"><span class="icon">📉</span>体重趋势</div>
+            <div class="chart-container"><canvas id="weightChart" class="chart-canvas"></canvas></div>
+          </div>
+          ` : '<div class="card"><div class="empty-state">记录更多体重数据后生成趋势图</div></div>'}
+
+          ${waistData.length > 1 ? `
+          <div class="card">
+            <div class="card-title"><span class="icon">📏</span>腰围趋势</div>
+            <div class="chart-container"><canvas id="waistChart" class="chart-canvas"></canvas></div>
+          </div>
+          ` : ''}
+
+          ${sugarData.length > 1 ? `
+          <div class="card">
+            <div class="card-title"><span class="icon">🩸</span>血糖趋势</div>
+            <div class="chart-container"><canvas id="sugarChart" class="chart-canvas"></canvas></div>
+          </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    function renderReview() {
+      const day = getDayNumber(currentData.settings.startDate);
+      const weekNum = Math.ceil(day / 7);
+      const startOfWeek = currentData.settings.startDate;
+      const weekStart = addDays(startOfWeek, (weekNum - 1) * 7);
+      const weekEnd = addDays(weekStart, 6);
+
+      return `
+        <div class="container">
+          <div class="card">
+            <div class="card-title"><span class="icon">📝</span>每周复盘 · 第${weekNum}周</div>
+            <p style="color: var(--text-light); margin-bottom: 16px;">${weekStart} 至 ${weekEnd}</p>
+
+            <div style="margin-bottom: 12px; font-weight: 600;">本周做得好的3件事</div>
+            <textarea class="review-textarea" id="good1" placeholder="第1件...">${getReviewField(weekNum, 'good1')}</textarea>
+            <textarea class="review-textarea" id="good2" placeholder="第2件...">${getReviewField(weekNum, 'good2')}</textarea>
+            <textarea class="review-textarea" id="good3" placeholder="第3件...">${getReviewField(weekNum, 'good3')}</textarea>
+
+            <div style="margin-bottom: 12px; font-weight: 600;">本周遇到的困难</div>
+            <textarea class="review-textarea" id="difficulty" placeholder="遇到了什么困难？">${getReviewField(weekNum, 'difficulty')}</textarea>
+
+            <div style="margin-bottom: 12px; font-weight: 600;">下周改进1件事</div>
+            <textarea class="review-textarea" id="improve" placeholder="下周重点改进...">${getReviewField(weekNum, 'improve')}</textarea>
+
+            <div style="margin-bottom: 12px; font-weight: 600;">非体重胜利</div>
+            <textarea class="review-textarea" id="victory" placeholder="比如：腰围缩小、血糖稳定、精力提升、睡眠改善...">${getReviewField(weekNum, 'victory')}</textarea>
+
+            <div style="margin-bottom: 12px; font-weight: 600;">身体感受</div>
+            <textarea class="review-textarea" id="feeling" placeholder="身体有什么变化？">${getReviewField(weekNum, 'feeling')}</textarea>
+
+            <button class="btn btn-block" id="saveReview">保存复盘</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function getReviewField(week, field) {
+      if (!currentData.reviews) currentData.reviews = {};
+      if (!currentData.reviews[week]) return '';
+      return currentData.reviews[week][field] || '';
+    }
+
+    function renderSettings() {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      return `
+        <div class="container">
+          <div class="card">
+            <div class="card-title"><span class="icon">⚙️</span>设置</div>
+            <div class="settings-section">
+              <h3>基本信息</h3>
+              <form class="setup-form" id="settingsForm">
+                <label>开始日期<input type="date" id="settingStartDate" value="${currentData.settings.startDate}"></label>
+                <label>性别
+                  <select id="settingGender">
+                    <option value="male" ${currentData.settings.gender === 'male' ? 'selected' : ''}>男</option>
+                    <option value="female" ${currentData.settings.gender === 'female' ? 'selected' : ''}>女</option>
+                  </select>
+                </label>
+                <label>初始体重（kg）<input type="number" id="settingInitialWeight" value="${currentData.settings.initialWeight}" step="0.1"></label>
+                <label>目标体重（kg）<input type="number" id="settingTargetWeight" value="${currentData.settings.targetWeight}" step="0.1"></label>
+                <label>身高（cm）<input type="number" id="settingHeight" value="${currentData.settings.height || ''}"></label>
+                <button type="submit" class="btn btn-block">保存设置</button>
+              </form>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><span class="icon">📱</span>安装到手机桌面</div>
+            ${isStandalone ? `
+              <p>✅ 你已经以独立应用模式运行。</p>
+            ` : `
+              <div class="info-list">
+                <li><span class="bullet">1</span><div><strong>安卓（Chrome）：</strong>点击浏览器菜单（⋮）→“添加到主屏幕”→确认。</div></li>
+                <li><span class="bullet">2</span><div><strong>iPhone（Safari）：</strong>点击分享按钮⬆️→“添加到主屏幕”→确认。</div></li>
+                <li><span class="bullet">3</span><div><strong>电脑：</strong>Chrome/Edge地址栏右侧点击安装图标，或菜单→“安装应用”。</div></li>
+              </div>
+              <div class="tip-box" style="margin-top: 12px;">
+                <strong>提示：</strong>如果浏览器没有提示安装，说明当前是本地文件打开。请按下方说明部署到 GitHub Pages 后再安装。
+              </div>
+            `}
+          </div>
+
+          <div class="card">
+            <div class="card-title"><span class="icon">🚀</span>部署到 GitHub Pages（推荐）</div>
+            <div class="info-list">
+              <li><span class="bullet">1</span><div>在 GitHub 新建一个仓库，如<code>health100</code>。</div></li>
+              <li><span class="bullet">2</span><div>上传<code>100天健康打卡PWA</code>文件夹里的所有文件到仓库根目录。</div></li>
+              <li><span class="bullet">3</span><div>进入仓库 Settings → Pages → Source 选择<code>main</code>分支，保存。</div></li>
+              <li><span class="bullet">4</span><div>几分钟后访问<code>https://你的用户名.github.io/health100</code>即可使用，并提示安装。</div></li>
+            </div>
+          </div>
+
+          <div class="card"
+          >
+            <div class="card-title"><span class="icon">💾</span>数据管理</div>
+            <button class="btn btn-block" id="exportData" style="margin-bottom: 12px;">导出数据（JSON）</button>
+            <button class="btn btn-block btn-secondary" id="importDataBtn" style="margin-bottom: 12px;">导入数据</button>
+            <input type="file" id="importFile" accept=".json" class="hidden">
+          </div>
+
+          <div class="card">
+            <div class="card-title"><span class="icon">📚</span>关联文档</div>
+            <ul class="info-list">
+              <li><span class="bullet">📄</span><div><a href="../100天健康蜕变计划.md" style="color: var(--primary);">100天健康蜕变计划（修订版）</a></div></li>
+              <li><span class="bullet">📄</span><div><a href="../100天阶段执行细案.md" style="color: var(--primary);">100天阶段执行细案</a></div></li>
+            </ul>
+          </div>
+
+          <div class="card danger-zone">
+            <div class="card-title"><span class="icon">⚠️</span>危险区域</div>
+            <p style="margin-bottom: 12px; font-size: 14px;">重置将清除所有打卡记录和复盘，不可恢复。</p>
+            <button class="btn btn-danger btn-block" id="resetData">重置所有数据</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderNav() {
+      const tabs = [
+        { id: 'today', icon: '📋', label: '今日' },
+        { id: 'checkin', icon: '✅', label: '打卡' },
+        { id: 'calendar', icon: '📅', label: '日历' },
+        { id: 'stats', icon: '📊', label: '统计' },
+        { id: 'review', icon: '📝', label: '复盘' },
+        { id: 'settings', icon: '⚙️', label: '设置' }
+      ];
+      return `
+        <nav class="nav">
+          ${tabs.map(t => `
+            <div class="nav-item ${currentTab === t.id ? 'active' : ''}" data-tab="${t.id}">
+              <span class="icon">${t.icon}</span>
+              <span>${t.label}</span>
+            </div>
+          `).join('')}
+        </nav>
+      `;
+    }
+
+    function bindSetupEvents() {
+      document.getElementById('setupForm').addEventListener('submit', e => {
+        e.preventDefault();
+        currentData.settings.startDate = document.getElementById('startDate').value;
+        currentData.settings.gender = document.getElementById('gender').value;
+        currentData.settings.initialWeight = parseFloat(document.getElementById('initialWeight').value);
+        currentData.settings.targetWeight = parseFloat(document.getElementById('targetWeight').value);
+        const h = document.getElementById('height').value;
+        currentData.settings.height = h ? parseFloat(h) : null;
+        currentData.settings.setupDone = true;
+
+        const today = formatDate(new Date());
+        const record = getRecord(currentData, today);
+        record.weight = currentData.settings.initialWeight;
+
+        saveData(currentData);
+        render();
+      });
+    }
+
+    function bindTabEvents() {
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+          currentTab = item.dataset.tab;
+          selectedDate = formatDate(new Date());
+          render();
+        });
+      });
+    }
+
+    function bindTabSpecificEvents() {
+      if (currentTab === 'checkin') bindCheckinEvents();
+      if (currentTab === 'calendar') bindCalendarEvents();
+      if (currentTab === 'stats') drawCharts();
+      if (currentTab === 'review') bindReviewEvents();
+      if (currentTab === 'settings') bindSettingsEvents();
+    }
+
+    function bindCheckinEvents() {
+      const record = getRecord(currentData, selectedDate);
+      const day = Math.floor((new Date(selectedDate) - new Date(currentData.settings.startDate)) / (1000 * 60 * 60 * 24)) + 1;
+      const phase = PHASES[getPhase(Math.max(1, Math.min(100, day)))];
+
+      document.querySelectorAll('.checklist-item').forEach(item => {
+        item.addEventListener('click', e => {
+          if (e.target.tagName === 'INPUT') return;
+          const checkbox = item.querySelector('input');
+          checkbox.checked = !checkbox.checked;
+          updateCheckItem(item, checkbox.checked);
+        });
+        const checkbox = item.querySelector('input');
+        checkbox.addEventListener('change', () => {
+          updateCheckItem(item, checkbox.checked);
+        });
+      });
+
+      function updateCheckItem(el, checked) {
+        const type = el.dataset.type;
+        const id = el.dataset.id;
+        if (type === 'checklist') record.checklists[id] = checked;
+        else record.forbidden[id] = checked;
+        if (checked) el.classList.add('checked');
+        else el.classList.remove('checked');
+        saveData(currentData);
+      }
+
+      document.getElementById('saveCheckin').addEventListener('click', () => {
+        const w = document.getElementById('weightInput').value;
+        const waist = document.getElementById('waistInput').value;
+        const sugar = document.getElementById('sugarInput').value;
+        if (w) record.weight = parseFloat(w);
+        if (waist) record.waist = parseFloat(waist);
+        if (sugar) record.bloodSugar = parseFloat(sugar);
+        record.notes = document.getElementById('notesInput').value;
+        saveData(currentData);
+        alert('打卡已保存！');
+        render();
+      });
+    }
+
+    function bindCalendarEvents() {
+      document.querySelectorAll('.calendar-day').forEach(day => {
+        if (day.classList.contains('empty')) return;
+        day.addEventListener('click', () => {
+          selectedDate = day.dataset.date;
+          currentTab = 'checkin';
+          render();
+        });
+      });
+    }
+
+    function bindReviewEvents() {
+      document.getElementById('saveReview').addEventListener('click', () => {
+        const day = getDayNumber(currentData.settings.startDate);
+        const weekNum = Math.ceil(day / 7);
+        if (!currentData.reviews) currentData.reviews = {};
+        currentData.reviews[weekNum] = {
+          good1: document.getElementById('good1').value,
+          good2: document.getElementById('good2').value,
+          good3: document.getElementById('good3').value,
+          difficulty: document.getElementById('difficulty').value,
+          improve: document.getElementById('improve').value,
+          victory: document.getElementById('victory').value,
+          feeling: document.getElementById('feeling').value
+        };
+        saveData(currentData);
+        alert('复盘已保存！');
+      });
+    }
+
+    function bindSettingsEvents() {
+      document.getElementById('settingsForm').addEventListener('submit', e => {
+        e.preventDefault();
+        currentData.settings.startDate = document.getElementById('settingStartDate').value;
+        currentData.settings.gender = document.getElementById('settingGender').value;
+        currentData.settings.initialWeight = parseFloat(document.getElementById('settingInitialWeight').value);
+        currentData.settings.targetWeight = parseFloat(document.getElementById('settingTargetWeight').value);
+        const h = document.getElementById('settingHeight').value;
+        currentData.settings.height = h ? parseFloat(h) : null;
+        saveData(currentData);
+        alert('设置已保存');
+        render();
+      });
+
+      document.getElementById('exportData').addEventListener('click', () => {
+        const blob = new Blob([JSON.stringify(currentData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `100天健康打卡数据_${formatDate(new Date())}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+
+      document.getElementById('importDataBtn').addEventListener('click', () => {
+        document.getElementById('importFile').click();
+      });
+
+      document.getElementById('importFile').addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = event => {
+          try {
+            const data = JSON.parse(event.target.result);
+            if (data.settings && data.records) {
+              currentData = data;
+              saveData(currentData);
+              alert('数据导入成功');
+              render();
+            } else {
+              alert('数据格式不正确');
+            }
+          } catch (err) {
+            alert('导入失败：' + err.message);
+          }
+        };
+        reader.readAsText(file);
+      });
+
+      document.getElementById('resetData').addEventListener('click', () => {
+        if (confirm('确定要重置所有数据吗？此操作不可恢复。')) {
+          currentData = getDefaultData();
+          saveData(currentData);
+          render();
+        }
+      });
+    }
+
+    function drawCharts() {
+      const records = currentData.records;
+      const dates = Object.keys(records).sort();
+      const weightData = dates.map(d => ({ date: d, value: records[d].weight })).filter(p => p.value);
+      const waistData = dates.map(d => ({ date: d, value: records[d].waist })).filter(p => p.value);
+      const sugarData = dates.map(d => ({ date: d, value: records[d].bloodSugar })).filter(p => p.value);
+
+      if (weightData.length > 1) drawLineChart('weightChart', weightData, '#2e7d32', '体重(kg)');
+      if (waistData.length > 1) drawLineChart('waistChart', waistData, '#1565c0', '腰围(cm)');
+      if (sugarData.length > 1) drawLineChart('sugarChart', sugarData, '#c62828', '血糖(mmol/L)');
+    }
+
+    function drawLineChart(canvasId, data, color, label) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * 2;
+      canvas.height = rect.height * 2;
+      ctx.scale(2, 2);
+
+      const width = rect.width;
+      const height = rect.height;
+      const padding = { top: 30, right: 20, bottom: 40, left: 45 };
+      const chartW = width - padding.left - padding.right;
+      const chartH = height - padding.top - padding.bottom;
+
+      const values = data.map(d => d.value);
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      const range = max - min || 1;
+      const yMin = Math.max(0, min - range * 0.1);
+      const yMax = max + range * 0.1;
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = '#333';
+      ctx.font = '14px sans-serif';
+      ctx.fillText(label, padding.left, 20);
+
+      ctx.strokeStyle = '#e0e0e0';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 4; i++) {
+        const y = padding.top + chartH * i / 4;
+        ctx.beginPath();
+        ctx.moveTo(padding.left, y);
+        ctx.lineTo(width - padding.right, y);
+        ctx.stroke();
+
+        const val = yMax - (yMax - yMin) * i / 4;
+        ctx.fillStyle = '#666';
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(val.toFixed(1), padding.left - 8, y + 4);
+      }
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      data.forEach((d, i) => {
+        const x = padding.left + chartW * i / (data.length - 1);
+        const y = padding.top + chartH * (yMax - d.value) / (yMax - yMin);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      data.forEach((d, i) => {
+        const x = padding.left + chartW * i / (data.length - 1);
+        const y = padding.top + chartH * (yMax - d.value) / (yMax - yMin);
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      ctx.fillStyle = '#666';
+      ctx.font = '10px sans-serif';
+      ctx.textAlign = 'center';
+      const step = Math.ceil(data.length / 5);
+      data.forEach((d, i) => {
+        if (i % step === 0 || i === data.length - 1) {
+          const x = padding.left + chartW * i / (data.length - 1);
+          const dateStr = d.date.slice(5);
+          ctx.fillText(dateStr, x, height - padding.bottom + 15);
+        }
+      });
+    }
+
+    // 注册 Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(err => {
+        console.log('Service Worker 注册失败:', err);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', render);
+  </script>
+</body>
+</html>
