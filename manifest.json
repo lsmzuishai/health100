@@ -1,0 +1,26 @@
+{
+  "name": "100天健康蜕变打卡",
+  "short_name": "健康打卡",
+  "description": "100天减重、控糖、护肝、调阴阳的每日打卡与回顾工具",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f5f5f5",
+  "theme_color": "#2e7d32",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["health", "lifestyle"],
+  "lang": "zh-CN"
+}
